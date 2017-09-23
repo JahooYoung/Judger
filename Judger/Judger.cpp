@@ -1,11 +1,104 @@
-// Judger.cpp: å®šä¹‰æ§åˆ¶å°åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
+// Judger.cpp: ¶¨Òå¿ØÖÆÌ¨Ó¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
 //
 
 #include "stdafx.h"
+#include "inputGenerator.h"
+#include "windowMessage.h"
+#include "comparer.h"
+#include "program.h"
+#include "fileInfo.h"
 
+const string stdOutput = "CorrectOutput.txt";
+
+string inputFile, outputFile;
+Program *prog, *force;
+InputGenerator *inGener;
+Comparer *comp;
+
+void Init()
+{
+	ChangeTitle("³õÊ¼»¯ÖĞ¡£¡£¡£");
+	srand((unsigned)time(NULL));
+	InitWindow();
+	InitFile(prog, force, inputFile, outputFile);
+	inGener = new InputGenerator(infoFile, inputFile);
+	comp = new Comparer(infoFile, outputFile, stdOutput);
+}
+
+void Judge()
+{
+	ChangeTitle("Judge! P¼üÔİÍ£");
+	string openInput = "start notepad " + inputFile;
+	int acCnt = 0;
+	while (true)
+	{
+		cout << "Éú³ÉÊı¾İÖĞ...\n";
+		inGener->GeneratorInput();
+
+	ReCompare:
+		cout << "ÕıÈ·³ÌĞò " << force->ProgramName() << " ---> ";
+		if (force->Run())
+			cout << force->LastRunningTime() << "ms\n";
+		CheckFile(outputFile);
+		CopyFile(outputFile.c_str(), stdOutput.c_str(), false);
+		DeleteFile(outputFile.c_str());
+
+		cout << "ÎÒµÄ³ÌĞò " << prog->ProgramName() << " ---> ";
+		if (prog->Run())
+			cout << prog->LastRunningTime() << "ms\n";
+		CheckFile(outputFile);
+
+		while (!comp->Compare())
+		{
+			ShowJudger();
+			cout << "-------i¼ü´ò¿ªÊäÈëÎÄ¼ş£¬c¼üÖØĞÂÔËĞĞ³ÌĞò²¢±È½Ï£¬n¼üÌø¹ı´Ë×é£¬Esc¼üÍË³ö-------" << endl;
+			while (!keys['c'] && !keys['n'])
+			{
+				WndPro();
+				if (keys['i']) system(openInput.c_str()), keys['i'] = false;
+			}
+			keys['p'] = false;
+			acCnt = 0;
+			if (keys['c'])
+			{
+				keys['c'] = false;
+				goto ReCompare;
+			}
+			if (keys['n'])
+			{
+				cout << "----------------------------EnterÈ·ÈÏ----------------------------" << endl;
+				if (WaitAKey() == VK_RETURN) break;
+				else keys['n'] = false;
+			}
+		}
+		if (keys['n'])
+		{
+			cout << endl;
+			keys['n'] = false;
+			continue;
+		}
+
+		cout << "½á¹ûÏà·û" << endl;
+		acCnt++;
+		cout << "Á¬ĞøAccepted´ÎÊı: " << acCnt << endl << endl;
+
+		if (keys['p'])
+		{
+			keys['p'] = false;
+			cout << "ÕıÈ·³ÌĞò " << force->ProgramName()
+				<< " Æ½¾ùÊ±¼ä£º" << force->AverageRunningTime() << "ms" << endl;
+			cout << "ÎÒµÄ³ÌĞò " << prog->ProgramName()
+				<< " Æ½¾ùÊ±¼ä£º" << prog->AverageRunningTime() << "ms" << endl;
+			cout << "-----------------ÔİÍ££¬EscÍË³ö£¬ÈÎÒâ¼ü¼ÌĞø--------------------" << endl << endl;
+			WaitAKey();
+		}
+	}
+}
 
 int main()
 {
+	Init();
+	Judge();
     return 0;
 }
 

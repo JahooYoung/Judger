@@ -1,15 +1,41 @@
-// stdafx.h : æ ‡å‡†ç³»ç»ŸåŒ…å«æ–‡ä»¶çš„åŒ…å«æ–‡ä»¶ï¼Œ
-// æˆ–æ˜¯ç»å¸¸ä½¿ç”¨ä½†ä¸å¸¸æ›´æ”¹çš„
-// ç‰¹å®šäºé¡¹ç›®çš„åŒ…å«æ–‡ä»¶
+// stdafx.h : ±ê×¼ÏµÍ³°üº¬ÎÄ¼şµÄ°üº¬ÎÄ¼ş£¬
+// »òÊÇ¾­³£Ê¹ÓÃµ«²»³£¸ü¸ÄµÄ
+// ÌØ¶¨ÓÚÏîÄ¿µÄ°üº¬ÎÄ¼ş
 //
 
 #pragma once
 
 #include "targetver.h"
 
-#include <stdio.h>
 #include <tchar.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <queue>
+#include <stack>
 
+using namespace std;
+#define mmst(a, b) memset(a, b, sizeof(a))
+#define mmcp(a, b) memcpy(a, b, sizeof(b))
 
+typedef long long LL;
 
-// TODO: åœ¨æ­¤å¤„å¼•ç”¨ç¨‹åºéœ€è¦çš„å…¶ä»–å¤´æ–‡ä»¶
+const int inf = 2000000000;
+
+inline bool IsControlString(string s)
+{
+	s.erase(s.find_last_not_of(" ") + 1);
+	return s == "input:"
+		|| s == "data:"
+		|| s == "compare:"
+		|| s == "file:";
+}
+
+// TODO: ÔÚ´Ë´¦ÒıÓÃ³ÌĞòĞèÒªµÄÆäËûÍ·ÎÄ¼ş
