@@ -24,12 +24,13 @@ private:
 
 inline LL Expression::RandBig()
 {
-	return ((LL)rand() << 45) | ((LL)rand() << 30) | (rand() << 15) | rand();
+	return ((LL)(rand() & 7) << 60) | ((LL)rand() << 45) | ((LL)rand() << 30) 
+		| (rand() << 15) | rand();
 }
 
 inline LL Expression::RandInRange(const LL &l, const LL &r)
 {
-	if (r < l) return 0;
+	if (r < l) return r + RandBig() % (l - r + 1);
 	return l + RandBig() % (r - l + 1);
 }
 

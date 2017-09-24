@@ -48,7 +48,7 @@ void Detect(bool &CusGenerExist, string &spro, string &sforce, int &style)
 		if (s.find(".in") < s.size() || s.find(".out") < s.size()) style = 2;
 		if (s.find(".exe") >= s.size()) continue;
 		s = s.substr(0, s.size() - 4);
-		if (s == inGenerName + ".exe") { CusGenerExist = true; continue; }
+		if (s == inGenerName) { CusGenerExist = true; continue; }
 		if (s == "judger" || s == "Judger") continue;
 		if (s.find("force") == (LL)s.size() - 5)
 		{
@@ -82,22 +82,71 @@ void AutoMake()
 	Detect(cg, prog, force, style);
 	ofstream fout(infoFile);
 	if (!cg)
-		fout << "// 生成输入" << endl << "input:" << endl << endl;
-	fout << "// 文件信息" << endl
+		fout << "//生成输入" << endl << "input:" << endl << endl;
+	fout << "//文件信息" << endl
 		<< "file:" << endl
-		<< "// 正确的程序" << endl
+		<< "//正确的程序 [最大运行时间]" << endl
 		<< force << endl
-		<< "// 你的程序" << endl
+		<< "//你的程序 [最大运行时间]" << endl
 		<< prog << endl
-		<< "// 输入输出文件格式 1代表input.txt和output.txt 2代表"
+		<< "//输入输出文件格式 1代表input.txt和output.txt 2代表"
 		<< prog << ".in和" << prog << ".out" << endl
 		<< style << endl;
+	fout << "\n//比较方式\ncompare:\nnormal\n\
+//normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
+//strict 严格比较模式，进行逐字符比较\n\
+//real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。" << endl;
 	fout.close();
 }
 
-void WriteCustomGen()
+void WriteCustomGen(string inputFile)
 {
-
+	ofstream fout(inGenerName + ".cpp");
+	fout << "\
+#include <iostream>\n\
+#include <fstream>\n\
+#include <algorithm>\n\
+#include <cstdio>\n\
+#include <cstdlib>\n\
+#include <cstring>\n\
+#include <ctime>\n\
+#include <cmath>\n\
+#include <vector>\n\
+using namespace std;\n\
+typedef long long LL;\n\
+\n\
+// 一些随机数工具\n\
+// 生成0~2^63-1的整数\n\
+LL Rand()\n\
+{\n\
+    return ((LL)(rand() & 7) << 60) | ((LL)rand() << 45) | ((LL)rand() << 30)\n\
+        | (rand() << 15) | rand();\n\
+}\n\
+// 生成l~r的int的整数\n\
+int Rand(int l, int r)\n\
+{\n\
+    if (r < l) swap(l, r);\n\
+    return l + Rand() % (r - l + 1);\n\
+}\n\
+// 生成l~r的long long的整数\n\
+LL Rand(LL l, LL r)\n\
+{\n\
+    if (r < l) swap(l, r);\n\
+    return l + Rand() % (r - l + 1);\n\
+}\n\
+\n\
+int main(int argc, char **argv)\n\
+{\n\
+	// 在Judger的帮助下初始化随机种子\n\
+	if (argc > 1) srand(atoi(argv[1]));\n\
+		else srand((unsigned)time(0));\n\
+	// 设置文件\n\
+    freopen(\"" << inputFile << "\", \"w\", stdout);\n\
+    // 在下面完成你的代码\n\
+    \n\
+    return 0;\n\
+}\n";
+	fout.close();
 }
 
 bool Answer()
@@ -121,16 +170,6 @@ void GenerateGuide()
 	string prog, force;
 	Detect(cg, prog, force, style);
 	ofstream fout(infoFile);
-	if (!cg)
-	{
-		cout << "未能在你的文件夹中发现" << inGenerName << ".exe" << endl;
-		cout << "需要给你一个模板吗？ 按Y键则是，N键则否" << endl << endl;
-		if (Answer()) WriteCustomGen();
-		else {
-			cout << "那么请稍后在" << infoFile << "的input:后写数据的格式吧" << endl << endl;
-			fout << "// 生成输入" << endl << "input:" << endl << endl;
-		}
-	}
 
 	cout << "你的程序名是 " << prog << " 吗？ 如果是，直接按Enter，否则请输入你的程序名" << endl;
 	string s;
@@ -161,18 +200,62 @@ void GenerateGuide()
 	getline(cin, s);
 	if (s != "") style = atoi(s.c_str());
 
-	fout << "// 文件信息" << endl
+	if (!cg)
+	{
+		cout << "未能在你的文件夹中发现" << inGenerName << ".exe" << endl;
+		cout << "需要给你一个模板吗？ 按Y键则是，N键则否" << endl << endl;
+		if (Answer())
+		{
+			WriteCustomGen(style == 1 ? "input.txt" : prog + ".in");
+			cout << "已经把你生成好inputGen.cpp了，请稍后在里面写好生成数据的程序吧" << endl << endl;
+		}
+		else {
+			cout << "那么请稍后在" << infoFile << "的input:后写数据的格式吧" << endl << endl;
+			fout << "//生成输入" << endl << "input:" << endl << endl;
+		}
+	}
+
+	fout << "//文件信息" << endl
 		<< "file:" << endl
-		<< "// 正确的程序 [最大运行时间]" << endl
+		<< "//正确的程序 [最大运行时间]" << endl
 		<< force << endl
-		<< "// 你的程序 [最大运行时间]" << endl
+		<< "//你的程序 [最大运行时间]" << endl
 		<< prog << endl
-		<< "// 输入输出文件格式 1代表input.txt和output.txt 2代表"
+		<< "//输入输出文件格式 1代表input.txt和output.txt 2代表"
 		<< prog << ".in和" << prog << ".out" << endl
 		<< style << endl;
+
+	cout << "然后你想Judger怎么比较两个输出呢？Judger有以下几种比较模式\n\
+normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
+strict 严格比较模式，进行逐字符比较\n\
+real 实数比较模式，每个实数进行比较，精度在eps内。若选此模式eps会稍后叫你输入\n\
+请输入上面字符串中的一个，若直接按Enter，则默认为normal" << endl;
+	getline(cin, s);
+	if (s != "")
+	{
+		while (s != "normal" && s != "strict" && s != "real")
+		{
+			cout << "Judger不认识" << s << "这个比较模式喔" << endl;
+			while (getline(cin, s) && s == "");
+		}
+	}
+	else s = "normal";
+	fout << endl << "compare:" << endl << s << endl;
+	if (s == "real")
+	{
+		cout << "请输入一个实数表示最大允许误差" << endl;
+		double eps;
+		cin >> eps;
+		fout << eps << endl;
+	}
+	fout << "\
+//normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
+//strict 严格比较模式，进行逐字符比较\n\
+//real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。" << endl;
+	
 	fout.close();
 
-	cout << "好的！请再次检查" << infoFile 
+	cout << "好的！生成向导已经结束！请再次检查" << infoFile 
 		<< "，如果没有问题，重新运行Judger即可开始！" << endl;
 }
 
@@ -193,14 +276,14 @@ bool CheckFile(const string &file)
 
 void Guide()
 {
-	cout << "\n\n需要首次使用向导吗？如是，请按空格。如否，其他键退出。\n\n";
-	if (getch() != VK_SPACE) return;
+	cout << "\n\n需要使用教程吗？如是，请按空格。如否，其他键退出。\n\n";
+	if (WaitAKey() != VK_SPACE) return;
 
 	cout << "\
 judger是一个用于对拍的程序。\n\
 judger运行的时候，可以用p键暂停，Esc键退出，ALT+J最小化或恢复。\n\
 拍出错时，如果judger处于最小化状态，那么它会弹出来。\n\
-在使用前，他需要一个名为\"JudgeInfo.txt\"的文件。\n\
+在使用前，他需要一个名为\"" << infoFile << "\"的文件。\n\
 这个文件主要包括两个部分：数据生成(data)、文件控制(file)。\n\
 其中必须包含文件控制部分，比如:\n\n\
 file:         ----> 表示文件控制部分的开始\n\
@@ -213,23 +296,23 @@ kmp           ----> 要对拍的程序名，后面的没有数字表示无运行时间上限\n\
 	WaitAKey();
 
 	cout << "\
-接下来是数据生成部分。这个部分可以替代data生成输入文件。\n\
-如果你有自己的data（放在本目录下，命名为data.exe），则可以忽略这部分。\n\
+接下来是数据生成部分。这个部分可以替代" << inGenerName << "生成输入文件。\n\
+如果你有自己的输入生成程序（放在本目录下，命名为" << inGenerName << ".exe），则可以忽略这部分。\n\
 用一个例子来说。现有一道树上操作题，第一行读入n（点数）和m（操作数），则这样写：\n\
-data:\n\
+input:\n\
 n(100000) m(100000)\\n\n\
-第一行\"data:\"表示数据生成部分的开始；\
+第一行\"input:\"表示数据生成部分的开始；\
 第二行中，n、m是变量，被赋值为100000；\n\
 '\\n'在这里为换行符，最终效果为输出两个100000，用空格隔开，并换行。\n\
 在这种语言中，除变量外和括号，其他字符会照样输出。\n\
 变量名可以为A..Z和a..z，并且后面要赋值，否则会当做普通字符直接输出。\n\n\
 接下来，一行n个字符，表示每个结点的初始字符。那么可以这样写：\n\
 [n]c('a', 'z') ;\\n\n\
-上面为循环语句，格式是\"[循环次数]循环体;\"，允许嵌套。\n\
+上面为循环语句，格式是\"[循环次数(,循环变量(,初始值))]循环体;\"，允许嵌套。\n\
 而c是一个特殊的变量，它是专门用来输出字符的。\n\n\
 然后输入n-1条边，可以这样写：\n\
-[n-1]u(1, i) v(i+1)\\n;\n\
-其中上式的i是循环变量，从1开始。嵌套时，第二重循环的循环变量为j，第三重为k，如此类推。\n\n\
+[n-1, i]u(1, i) v(i+1)\\n;\n\
+其中上式的i是循环变量，从1开始。你也可以这样写：[n-1, i, 0]，这代表i从0开始。\n\n\
 按Esc退出，其他任意键继续\n\n";
 	WaitAKey();
 	cout << "\
@@ -244,12 +327,20 @@ W$(2*10^18)\n\
 data:\n\
 n(100000) m(100000)\\n\n\
 [n]c('a', 'z') ;\\n\n\
-[n-1]u(1, i) v(i+1)\\n;\n\
+[n-1, i]u(1, i) v(i+1)\\n;\n\
 W$(2*10^18)\n\
 [m]{1 u(1, n) v(1, n)|2 u(1, n) v(1, n) w(1, W)}\\n;\n\
 \n";
+	WaitAKey();
+	cout << "\
+然后是告诉Judger应该怎么比较的部分。这个部分的开始是标识符\"compare:\"。\n\
+第一行是一个字符串，它只能是以下几个中的一个：\n\
+normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
+strict 严格比较模式，进行逐字符比较\n\
+real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。\n\
+第二行根据第一行的情况填写。\n\n";
 
-	cout << "按任意键退出。弄好JudgeInfo.txt后再次运行judger即可使用。" << endl;
+	cout << "按任意键退出。弄好" << infoFile << "后再次运行judger即可使用。" << endl;
 	WaitAKey();
 }
 

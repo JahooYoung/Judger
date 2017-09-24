@@ -78,7 +78,7 @@ void Judge()
 			continue;
 		}
 
-		cout << "结果相符" << endl;
+		cout << "结果相符^_^" << endl;
 		acCnt++;
 		cout << "连续Accepted次数: " << acCnt << endl << endl;
 

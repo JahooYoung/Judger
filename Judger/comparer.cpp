@@ -15,7 +15,7 @@ Comparer::Comparer(string infoFile, string _userOutput, string _stdOutput)
 		mode = 0;
 		return;
 	}
-	while (getline(fin, s) && s.find("//") == 0);
+	while (getline(fin, s) && (s.find("//") == 0 || s == ""));
 	if (s == "normal") mode = 0;
 	else if (s == "strict") mode = 1;
 	else if (s == "real") mode = 2;
@@ -41,6 +41,7 @@ Comparer::Comparer(string infoFile, string _userOutput, string _stdOutput)
 
 bool Comparer::Compare()
 {
+	//cerr << mode << endl;
 	switch (mode)
 	{
 	case 0: return CompareNormal();
@@ -128,6 +129,7 @@ bool Comparer::CompareStrict()
 
 bool Comparer::CompareReal()
 {
+	//cerr << "entry:" << endl;
 	ifstream my_out(userOutput), ac_out(stdOutput);
 	string s1, s2; stringstream l1, l2;
 	double a, b; int line = 0;
@@ -144,8 +146,9 @@ bool Comparer::CompareReal()
 		if (!ac_end && !my_end)
 		{
 			ac_out.close(); my_out.close();
-			return 0;
+			return true;
 		}
+		//cerr << s1 << endl << s2 << endl;
 		l1.clear(); l2.clear();
 		l1 << s1; l2 << s2;
 		while (true)
@@ -161,18 +164,19 @@ bool Comparer::CompareReal()
 			isd1 = ss != endptr;
 			b = strtod(ss = ss2.c_str(), &endptr);
 			isd2 = ss != endptr;
+			//cerr << "a: " << a << "b: " << b << endl;
 			if (!(isd1 && isd2 && abs(a - b) < eps || ss1 == ss2))
 			{
 				Display(line, s1, s2);
 				ac_out.close(); my_out.close();
-				return line;
+				return false;
 			}
 		}
 		if (ac_end || my_end)
 		{
-			Display(line ,s1, s2);
+			Display(line, s1, s2);
 			ac_out.close(); my_out.close();
-			return line;
+			return false;
 		}
 	}
 }

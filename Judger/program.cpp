@@ -96,7 +96,7 @@ bool Program::Run()
 	if (exitCode != 0)
 	{
 		ShowJudger();
-		cout << "程序异常结束" << endl;
+		cout << "程序" << prog << "异常结束" << endl;
 		cout << "-----------------暂停，Esc退出，任意键继续--------------------" << endl << endl;
 		WaitAKey();
 		return false;
