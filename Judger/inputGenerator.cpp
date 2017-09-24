@@ -4,8 +4,10 @@
 #include "program.h"
 
 const string inGenerName = "inputGen";
+const int maxBuffer = 100000;
 
-InputGenerator::InputGenerator(string infoFile, string outputFile) : exp(var)
+InputGenerator::InputGenerator(string infoFile, string outputFile) 
+	: exp(var), buffer(NULL), bufEnd(NULL)
 {
 	for (int i = 0; i < 256; i++)
 		var[i].val = 0;
@@ -30,6 +32,28 @@ InputGenerator::InputGenerator(string infoFile, string outputFile) : exp(var)
 	//cerr << source << endl;
 }
 
+void InputGenerator::InitBuffer()
+{
+	if (!buffer) buffer = new char[maxBuffer];
+	bufEnd = buffer;
+}
+
+void InputGenerator::PushToBuffer(const char &ch)
+{
+	if (bufEnd - buffer == maxBuffer)
+	{
+		fwrite(buffer, 1, maxBuffer, file);
+		bufEnd = buffer;
+	}
+	*(bufEnd++) = ch;
+}
+
+void InputGenerator::FlushBuffer()
+{
+	if (bufEnd != buffer) fwrite(buffer, 1, bufEnd - buffer, file);
+	bufEnd = buffer;
+}
+
 char *InputGenerator::FindChar(char *st, char *ed, const char &tar)
 {
 	for (; st < ed; st++)
@@ -50,13 +74,8 @@ char *InputGenerator::FindChar(char *s, char *ed, const char &tar, const char &o
 
 void InputGenerator::Process(char *s, char *ed)
 {
-	/*for (char *i = s; i < ed; i++)
-		cerr << *i;
-	cerr << endl;*/
 	while (s < ed)
 	{
-		/*cerr << *s << endl;
-		WaitAKey();*/
 		if ((++timer) == 50000) WndPro(), timer = 0;
 		if (*s == '[')
 		{
@@ -66,8 +85,6 @@ void InputGenerator::Process(char *s, char *ed)
 			if (!comma)
 			{
 				LL loopCnt = exp.GetValue(s + 1, loopDefEnd);
-				/*cerr << loopCnt << endl;
-				WaitAKey();*/
 				for (LL i = 0; i < loopCnt; i++)
 					Process(loopDefEnd + 1, loopEnd);
 			}
@@ -101,12 +118,12 @@ void InputGenerator::Process(char *s, char *ed)
 			s = selectEnd + 1;
 			continue;
 		}
-		if (('a' <= *s && *s <= 'z' || 'A' <= *s && *s <= 'Z') && (*(s + 1) == '(' || *(s + 1) == '$' && *(s + 2) == '('))
+		if (('a' <= *s && *s <= 'z' || 'A' <= *s && *s <= 'Z') 
+			&& (*(s + 1) == '(' || *(s + 1) == '$' && *(s + 2) == '('))
 		{
 			bool unprint = (*(s + 1) == '$');
 			char *varibleEnd = FindChar(s + 2 + unprint, ed, ')', '(');
 			char *comma = FindChar(s, varibleEnd, ',');
-			//cerr << (comma ? *comma : 0) << endl;
 			Varible &i = var[*s];
 			if (!comma)
 				i.x = i.y = exp.GetValue(s + 2 + unprint, varibleEnd);
@@ -114,8 +131,6 @@ void InputGenerator::Process(char *s, char *ed)
 				i.x = exp.GetValue(s + 2 + unprint, comma);
 				i.y = exp.GetValue(comma + 1, varibleEnd);
 			}
-			//cerr << i.x << ' ' << i.y << endl;
-			//WaitAKey();
 			i.val = exp.RandInRange(i.x, i.y);
 			if (!unprint)
 			{
@@ -123,22 +138,22 @@ void InputGenerator::Process(char *s, char *ed)
 				{
 					char num[20];
 					int len = -1;
-					if (i.val < 0) putc('-', file);
+					if (i.val < 0) PushToBuffer('-');
 					for (LL temp = abs(i.val); temp; temp /= 10)
 						num[++len] = '0' + temp % 10;
 					if (len == -1) num[++len] = '0';
 					for (; len >= 0; len--)
-						putc(num[len], file);
+						PushToBuffer(num[len]);
 				}
-				else putc(i.val, file);
+				else PushToBuffer(i.val);
 			}
 			s = varibleEnd + 1;
 			continue;
 		}
-		if (*s != '\\') putc(*s, file);
+		if (*s != '\\') PushToBuffer(*s);
 		else {
 			s++;
-			putc(*s == 'n' ? '\n' : *s, file);
+			PushToBuffer(*s == 'n' ? '\n' : *s);
 		}
 		s++;
 	}
@@ -151,14 +166,16 @@ bool InputGenerator::GeneratorInput(string outputFile)
 	if (sourceLen != -1)
 	{
 		timer = 0;
-		file = fopen(output.c_str(), "w");
+		if (!(file = fopen(output.c_str(), "w"))) return false;
+		InitBuffer();
 		Process(source, source + sourceLen);
+		FlushBuffer();
 		fclose(file);
 		return true;
 	}
 	else {
 		// Run inputGen.exe
 		cusGener->SetArgument(to_string(exp.RandBig() % inf));
-		cusGener->Run();
+		return cusGener->Run();
 	}
 }

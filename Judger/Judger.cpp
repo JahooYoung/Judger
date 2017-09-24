@@ -32,8 +32,14 @@ void Judge()
 	int acCnt = 0;
 	while (true)
 	{
-		cout << "生成数据中...\n";
-		inGener->GeneratorInput();
+		cout << "生成数据中..." << endl;
+		if (!inGener->GeneratorInput())
+		{
+			ShowJudger();
+			cout << "生成数据失败，按任意键重新生成" << endl;
+			WaitAKey();
+			continue;
+		}
 
 	ReCompare:
 		cout << "正确程序 " << force->ProgramName() << " ---> ";

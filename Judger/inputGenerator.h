@@ -13,14 +13,15 @@ public:
 	InputGenerator(string infoFile, string outputFile = "");
 	bool GeneratorInput(string outputFile = "");
 private:
-	string output;
-	char *source; 
-	int sourceLen;
-	Varible var[256];
-	Expression exp;
-	int timer;
-	FILE *file;
+	string output; FILE *file;
 	Program *cusGener;
+	char *source; int sourceLen, timer;
+	Varible var[256]; Expression exp;
+	char *buffer, *bufEnd;
+
+	void InitBuffer();
+	void PushToBuffer(const char &ch);
+	void FlushBuffer();
 	char *FindChar(char *st, char *ed, const char &target);
 	char *FindChar(char *st, char *ed, const char &target, const char &opp);
 	void Process(char *s, char *ed);
