@@ -90,11 +90,12 @@ void InputGenerator::Process(char *s, char *ed)
 			}
 			else {
 				LL loopCnt = exp.GetValue(s + 1, comma);
-				Varible &i = var[*comma + 1];
-				comma += 2;
+				for (comma++; *comma == ' ' && comma < loopDefEnd; comma++);
+				Varible &i = var[*comma];
 				i.val = 1;
+				for (comma++; (*comma == ',' || *comma == ' ') && comma < loopDefEnd; comma++);
 				if (comma != loopDefEnd)
-					loopCnt += (i.val = exp.GetValue(comma, loopDefEnd) - 1);
+					loopCnt += (i.val = exp.GetValue(comma, loopDefEnd)) - 1;
 				for (; i.val <= loopCnt; i.val++)
 					Process(loopDefEnd + 1, loopEnd);
 			}
