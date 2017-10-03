@@ -82,6 +82,7 @@ bool Comparer::CompareNormal()
 	string s1, s2;
 	while (true)
 	{
+		//WndPro();
 		curLine++;
 		s1 = s2 = "";
 		bool a = getline(stdo, s1) ? true : false;
@@ -109,6 +110,7 @@ bool Comparer::CompareStrict()
 	string s1, s2;
 	while (true)
 	{
+		//WndPro();
 		curLine++;
 		s1 = s2 = "";
 		bool a = getline(stdo, s1) ? true : false;
@@ -137,6 +139,7 @@ bool Comparer::CompareReal()
 
 	while (true)
 	{
+		//WndPro();
 		line++;
 		s1 = s2 = "";
 		ac_end = getline(ac_out, s1) ? true : false;

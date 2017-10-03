@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include <windows.h>
 
-extern bool keys[];
+extern bool keyPress[];
 
 void ChangeTitle(string title);
 void InitWindow();

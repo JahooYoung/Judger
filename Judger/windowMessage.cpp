@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <conio.h>
 
-bool keys[256];
+bool keyPress[256];
 HWND JudgerWindow;
 
 void ChangeTitle(string title)
@@ -52,7 +52,7 @@ int WndPro(HANDLE hwnd)
 			if (hwnd) TerminateProcess(hwnd, 0);
 			exit(0);
 		}
-		keys[key] = true;
+		keyPress[key] = true;
 	}
 	return key;
 }

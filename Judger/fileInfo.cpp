@@ -181,7 +181,7 @@ void GenerateGuide()
 		while (getline(cin, s) && s == "");
 		if (s.find(".exe") == -1) s += ".exe";
 	}
-	if (s != "") prog = s;
+	if (s != "") prog = s.substr(0, s.size() - 4);
 
 	cout << "正确的程序名是 " << force << " 吗？ 如果是，直接按Enter，否则请输入正确的程序名" << endl;
 	getline(cin, s);
@@ -192,7 +192,7 @@ void GenerateGuide()
 		while (getline(cin, s) && s == "");
 		if (s.find(".exe") == -1) s += ".exe";
 	}
-	if (s != "") force = s;
+	if (s != "") force = s.substr(0, s.size() - 4);
 
 	cout << "输入输出文件格式是input.txt和output.txt，还是"
 		<< prog << ".in和" << prog << ".out？ 若是前者，请输入1，若是后者，请输入2" << endl

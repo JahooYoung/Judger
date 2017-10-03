@@ -33,7 +33,7 @@ inline bool IsControlString(string s)
 {
 	s.erase(s.find_last_not_of(" ") + 1);
 	return s == "input:"
-		|| s == "data:"
+		|| s == "makedata:"
 		|| s == "compare:"
 		|| s == "file:";
 }

@@ -7,10 +7,10 @@ const string inGenerName = "inputGen";
 const int maxBuffer = 100000;
 
 InputGenerator::InputGenerator(string infoFile, string outputFile) 
-	: exp(var), buffer(NULL), bufEnd(NULL)
+	: exp(var), file(NULL)
 {
 	for (int i = 0; i < 256; i++)
-		var[i].val = 0;
+		var[i].x = var[i].y = var[i].val = 0;
 	output = outputFile;
 	ifstream fin(infoFile);
 	string s, ss;
@@ -29,12 +29,12 @@ InputGenerator::InputGenerator(string infoFile, string outputFile)
 	source = new char[sourceLen + 5];
 	strcpy(source, ss.c_str());
 	source[sourceLen] = '\0';
+	bufEnd = buffer = new char[maxBuffer];
 	//cerr << source << endl;
 }
 
 void InputGenerator::InitBuffer()
 {
-	if (!buffer) buffer = new char[maxBuffer];
 	bufEnd = buffer;
 }
 
@@ -42,7 +42,7 @@ void InputGenerator::PushToBuffer(const char &ch)
 {
 	if (bufEnd - buffer == maxBuffer)
 	{
-		fwrite(buffer, 1, maxBuffer, file);
+		if (file) fwrite(buffer, 1, maxBuffer, file);
 		bufEnd = buffer;
 	}
 	*(bufEnd++) = ch;
@@ -50,7 +50,7 @@ void InputGenerator::PushToBuffer(const char &ch)
 
 void InputGenerator::FlushBuffer()
 {
-	if (bufEnd != buffer) fwrite(buffer, 1, bufEnd - buffer, file);
+	if (bufEnd != buffer && file) fwrite(buffer, 1, bufEnd - buffer, file);
 	bufEnd = buffer;
 }
 
@@ -160,10 +160,8 @@ void InputGenerator::Process(char *s, char *ed)
 	}
 }
 
-bool InputGenerator::GeneratorInput(string outputFile)
+bool InputGenerator::GeneratorInput(int dataId)
 {
-	if (outputFile == "" && output == "") return false;
-	if (output == "") output = outputFile;
 	if (sourceLen != -1)
 	{
 		timer = 0;
@@ -172,11 +170,14 @@ bool InputGenerator::GeneratorInput(string outputFile)
 		Process(source, source + sourceLen);
 		FlushBuffer();
 		fclose(file);
+		file = NULL;
 		return true;
 	}
 	else {
 		// Run inputGen.exe
-		cusGener->SetArgument(to_string(exp.RandBig() % inf));
+		string arg = to_string(exp.RandBig() % inf);
+		if (dataId != -1) arg += to_string(dataId);
+		cusGener->SetArgument(arg);
 		return cusGener->Run();
 	}
 }
