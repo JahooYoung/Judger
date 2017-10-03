@@ -2,6 +2,7 @@
 #include "program.h"
 #include "windowMessage.h"
 #include <windows.h>
+#include <Psapi.h>
 
 const int minDelay = 5, maxDelay = 100;
 
@@ -19,7 +20,8 @@ void StringToWString(const string &str, LPSTR &lstr)
 
 Program::Program(string programName, bool _showContent, int _timeLimit)
 	: prog(programName), showContent(_showContent), timeLimit(_timeLimit),
-	totalRunningTime(0), lastRunningTime(0), runCount(0), argc("")
+	totalRunningTime(0), lastRunningTime(0), runCount(0), argc(""),
+	lastRunningMemory(0), maxRunningMemory(0)
 {
 	StringToWString(prog, cmd);
 }
@@ -42,6 +44,16 @@ double Program::AverageRunningTime()
 	return (double)totalRunningTime / runCount;
 }
 
+double Program::LastRunningMemory()
+{
+	return (double)lastRunningMemory / 1048576;
+}
+
+double Program::MaxRunningMemory()
+{
+	return (double)maxRunningMemory / 1048576;
+}
+
 string Program::ProgramName()
 {
 	return prog;
@@ -49,16 +61,14 @@ string Program::ProgramName()
 
 bool Program::Run()
 {
+	int timer = minDelay;
+	if (runCount) timer = (totalRunningTime / runCount) >> 1;
+
 	STARTUPINFO si;
 	memset(&si, 0, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION pi;
-
-	int timer = minDelay;
-	if (runCount) timer = (totalRunningTime / runCount) >> 1;
-
-	//cerr << cmd << endl;
-
+	PROCESS_MEMORY_COUNTERS pmc;
 	DWORD exitCode;
 	DWORD runTime = GetTickCount();
 	CreateProcess(NULL, cmd, NULL, NULL, FALSE,
@@ -70,6 +80,9 @@ bool Program::Run()
 	{
 		GetExitCodeProcess(pi.hProcess, &exitCode);
 		if (exitCode != STILL_ACTIVE) break;
+		//GetProcessMemoryInfo(pi.hProcess, &pmc, sizeof(pmc));
+		//cerr << "cur:" << pmc.WorkingSetSize / 1048576 << endl
+		//	<< "peak:" << pmc.PeakWorkingSetSize / 1048576 << endl;
 		WndPro(pi.hProcess);
 		if (int(GetTickCount() - runTime) > timeLimit)
 		{
@@ -86,9 +99,17 @@ bool Program::Run()
 	}
 	runTime = GetTickCount() - runTime;
 
+	GetProcessMemoryInfo(pi.hProcess, &pmc, sizeof(pmc));
+	/*cerr << "cur:" << pmc.WorkingSetSize / 1048576 << endl
+		<< "peak:" << pmc.PeakWorkingSetSize / 1048576 << endl;*/
+
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 
+	lastRunningMemory = pmc.PeakWorkingSetSize;
+	maxRunningMemory = max(maxRunningMemory, lastRunningMemory);
+
+	if (runTime > timeLimit) runTime = timeLimit;
 	totalRunningTime += lastRunningTime = runTime;
 	runCount++;
 

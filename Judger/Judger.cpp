@@ -7,6 +7,7 @@
 #include "comparer.h"
 #include "program.h"
 #include "fileInfo.h"
+#include <iomanip>
 
 const string stdOutput = "CorrectOutput.txt";
 
@@ -29,6 +30,7 @@ void Judge()
 {
 	ChangeTitle("Judge! P键暂停");
 	string openInput = "start notepad " + inputFile;
+	cout << fixed << setprecision(2);
 	int acCnt = 0;
 	while (true)
 	{
@@ -43,7 +45,8 @@ void Judge()
 
 		cout << "正确程序 " << force->ProgramName() << " ---> ";
 		if (force->Run())
-			cout << force->LastRunningTime() << "ms\n";
+			cout << force->LastRunningTime() << "ms | "
+			<< force->LastRunningMemory() << "Mb" << endl;
 		CheckFile(outputFile);
 		CopyFile(outputFile.c_str(), stdOutput.c_str(), false);
 		DeleteFile(outputFile.c_str());
@@ -51,7 +54,8 @@ void Judge()
 	ReCompare:
 		cout << "你的程序 " << prog->ProgramName() << " ---> ";
 		if (prog->Run())
-			cout << prog->LastRunningTime() << "ms\n";
+			cout << prog->LastRunningTime() << "ms | "
+			<< prog->LastRunningMemory() << "Mb" << endl;
 		CheckFile(outputFile);
 
 		if (!comp->Compare())
@@ -82,9 +86,11 @@ void Judge()
 		{
 			keyPress['p'] = false;
 			cout << "正确程序 " << force->ProgramName()
-				<< " 平均时间：" << force->AverageRunningTime() << "ms" << endl;
+				<< " 平均时间：" << force->AverageRunningTime() << "ms" 
+				<< " 最大内存：" << force->MaxRunningMemory() << "Mb" << endl;
 			cout << "你的程序 " << prog->ProgramName()
-				<< " 平均时间：" << prog->AverageRunningTime() << "ms" << endl;
+				<< " 平均时间：" << prog->AverageRunningTime() << "ms"
+				<< " 最大内存：" << prog->MaxRunningMemory() << "Mb" << endl;
 			cout << "-----------------暂停，Esc退出，任意键继续--------------------" << endl << endl;
 			WaitAKey();
 		}
