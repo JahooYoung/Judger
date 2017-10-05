@@ -35,6 +35,7 @@ void Judge()
 	while (true)
 	{
 		cout << "生成输入中..." << endl;
+		int t = clock();
 		if (!inGener->GeneratorInput())
 		{
 			ShowJudger();
@@ -42,6 +43,7 @@ void Judge()
 			WaitAKey();
 			continue;
 		}
+		cout << clock() - t << endl;
 
 		cout << "正确程序 " << force->ProgramName() << " ---> ";
 		if (force->Run())

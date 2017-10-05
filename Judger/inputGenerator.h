@@ -11,7 +11,7 @@ class InputGenerator
 {
 public:
 	InputGenerator(string infoFile, string outputFile = "");
-	bool GeneratorInput(int dataId = -1);
+	bool GeneratorInput(int dataId = 0);
 	void Process(char *s, char *ed);
 private:
 	string output; FILE *file;
@@ -23,8 +23,8 @@ private:
 	void InitBuffer();
 	void PushToBuffer(const char &ch);
 	void FlushBuffer();
-	char *FindChar(char *st, char *ed, const char &target);
-	char *FindChar(char *st, char *ed, const char &target, const char &opp);
+	char *FindChar(char *st, const char *ed, const char &target);
+	char *FindChar(char *st, const char *ed, const char &target, const char &opp);
 };
 
 #endif

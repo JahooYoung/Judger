@@ -140,6 +140,8 @@ int main(int argc, char **argv)\n\
 	// 在Judger的帮助下初始化随机种子\n\
 	if (argc > 1) srand(atoi(argv[1]));\n\
 		else srand((unsigned)time(0));\n\
+	int dataId = 0; // 若dataId不等于0，则表示现在正在生成第dataId组数据的输入\n\
+	if (argc > 2) dataId = atoi(argv[2]);\n\
 	// 设置文件\n\
     freopen(\"" << inputFile << "\", \"w\", stdout);\n\
     // 在下面完成你的代码\n\

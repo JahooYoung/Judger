@@ -54,14 +54,14 @@ void InputGenerator::FlushBuffer()
 	bufEnd = buffer;
 }
 
-char *InputGenerator::FindChar(char *st, char *ed, const char &tar)
+char *InputGenerator::FindChar(char *st, const char *ed, const char &tar)
 {
 	for (; st < ed; st++)
 		if (*st == tar) return st;
 	return NULL;
 }
 
-char *InputGenerator::FindChar(char *s, char *ed, const char &tar, const char &opp)
+char *InputGenerator::FindChar(char *s, const char *ed, const char &tar, const char &opp)
 {
 	for (int depth = 1; s < ed; s++)
 	{
@@ -176,7 +176,7 @@ bool InputGenerator::GeneratorInput(int dataId)
 	else {
 		// Run inputGen.exe
 		string arg = to_string(exp.RandBig() % inf);
-		if (dataId != -1) arg += to_string(dataId);
+		if (dataId != 0) arg += " " + to_string(dataId);
 		cusGener->SetArgument(arg);
 		return cusGener->Run();
 	}
