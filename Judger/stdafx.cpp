@@ -4,5 +4,17 @@
 
 #include "stdafx.h"
 
+LL RandBig()
+{
+	static mt19937_64 mt64(time(0));
+	return mt64() & 0x7FFFFFFFFFFFFFFF;
+}
+
+LL RandInRange(const LL &l, const LL &r)
+{
+	// if (r < l) return r + RandBig() % (l - r + 1);
+	return l + RandBig() % (r - l + 1);
+}
+
 // TODO: 在 STDAFX.H 中引用任何所需的附加头文件，
 //而不是在此文件中引用

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "expression.h"
+#include "windowMessage.h"
 
 bool opPriorityInit = false;
 int opPriority[256];
@@ -10,10 +11,11 @@ inline bool CmpOp(const char &a, const char &b)
 	return opPriority[b] > opPriority[a];
 }
 
-inline void InitOpPriority()
+void InitOpPriority()
 {
 	if (opPriorityInit) return;
 	opPriorityInit = true;
+	mmst(opPriority, 0);
 	opPriority['('] = opPriority[')'] = 1;
 	opPriority['='] = 2;
 	opPriority['<'] = opPriority['>'] = 3;
@@ -39,11 +41,20 @@ LL power(LL a, LL b)
 	return ret;
 }
 
+Expression::Expression()
+{
+	InitOpPriority();
+}
+
+void Expression::SetVarible(LL *_var)
+{
+	var = _var;
+}
 
 /* 中缀表达式转后缀表达式：中缀表达式之间无分割
  * 后缀表达式操作数、操作符之间用空格分割，便于区分不同操作数
  */
-void Expression::InfixToSuffix(char* infix, char* suffix) 
+void Expression::InfixToSuffix(char *infix, char *suffix) 
 {
 	stack<char> op; //存储运算符的栈
 	for (char *infixBegin = infix; *infix; infix++)
@@ -106,8 +117,9 @@ void Expression::InfixToSuffix(char* infix, char* suffix)
 
 /* 后缀表达式求值
  */
-LL Expression::SuffixValue(char *suffix) 
+LL Expression::GetValue(char *suffix) 
 {
+	//cerr << suffix << endl;
 	LL value = 0;
 	stack<LL> operand;
 	for (; *suffix; suffix++) 
@@ -116,7 +128,7 @@ LL Expression::SuffixValue(char *suffix)
 		{
 			if (*suffix >= '0' && *suffix <= '9') 
 				value = value * 10 + *suffix - '0';
-			else value = var ? var[*suffix].val : 0;
+			else value = var ? var[*suffix] : 0;
 		}
 		else if (*suffix == ' ') {
 			//操作数入栈
@@ -147,36 +159,111 @@ LL Expression::SuffixValue(char *suffix)
 	return operand.top();
 }
 
-Expression::Expression(Varible *_var)
+void Expression::PreCalculate(char *in, char *out)
 {
-	InitOpPriority();
-	var = _var;
+	LL value = 0;
+	bool numFlag = false;
+	stack<LL> operand;
+	for (; *in; in++)
+	{
+		if (*in >= '0' && *in <= '9')
+		{
+			value = value * 10 + *in - '0';
+			numFlag = true;
+		}
+		else if (*in == ' ')
+		{
+			if (numFlag) operand.push(value);
+			value = 0;
+			numFlag = false;
+		}
+		else if (opPriority[(int)*in] && operand.size() > 1)
+		{
+			LL opr2 = operand.top();
+			operand.pop();
+			LL opr1 = operand.top();
+			operand.pop();
+			switch (*in)
+			{
+			case '+': value = opr1 + opr2; break;
+			case '-': value = opr1 - opr2; break;
+			case '*': value = opr1 * opr2; break;
+			case '/': value = opr1 / opr2; break;
+			case '<': value = min(opr1, opr2); break;
+			case '>': value = max(opr1, opr2); break;
+			case '^': value = power(opr1, opr2); break;
+			case '%': value = opr1 % opr2; break;
+			case '=': value = (opr1 == opr2); break;
+			}
+			numFlag = true;
+		}
+		else
+		{
+			stack<char> tmp;
+			for (; !operand.empty(); operand.pop())
+			{
+				tmp.push(' ');
+				value = operand.top();
+				bool minus = (value < 0);
+				if (minus)
+					tmp.push('-'), tmp.push(' '), value = -value;
+				do {
+					tmp.push('0' + value % 10);
+					value /= 10;
+				} while (value);
+				if (minus)
+					tmp.push(' '), tmp.push('0');
+			}
+			for (; !tmp.empty(); tmp.pop())
+				*(out++) = tmp.top();
+			*(out++) = *in;
+			*(out++) = ' ';
+			numFlag = false;
+		}
+	}
+	stack<char> tmp;
+	for (; !operand.empty(); operand.pop())
+	{
+		tmp.push(' ');
+		value = operand.top();
+		bool minus = (value < 0);
+		if (minus)
+			tmp.push('-'), tmp.push(' '), value = -value;
+		do {
+			tmp.push('0' + value % 10);
+			value /= 10;
+		} while (value);
+		if (minus)
+			tmp.push(' '), tmp.push('0');
+	}
+	for (; !tmp.empty(); tmp.pop())
+		*(out++) = tmp.top();
+	*out = '\0';
 }
 
-LL Expression::GetValue(char *begin, char *end)
+char *Expression::GetExpression(const char *s, const char *ed)
 {
-	static int bufSize = 0;
-	static char *infix = NULL, *suffix = NULL;
-	if (end - begin >= bufSize)
-	{
-		if (bufSize)
-		{
-			delete[] infix;
-			delete[] suffix;
-		}
-		bufSize = max((end - begin) << 2, 100);
-		infix = new char[bufSize];
-		suffix = new char[bufSize];
-	}
-
-	int i;
-	for (i = 0; begin != end; begin++)
-		if (*begin != ' ') infix[i++] = *begin;
-	infix[i] = '\0';
-
-	//cerr << "infix: " << infix << endl;
-
+	if (!ed) ed = s + strlen(s);
+	int len = 0;
+	for (const char *i = s; i != ed; i++)
+		if (*i != ' ') len++;
+	if (len == 0)
+		ThrowError(s, ed, "缺少表达式");
+	char *infix = new char[40 * (len + 5)], *suffix = new char[40 * (len + 5)];
+	for (int i = 0; s != ed; s++)
+		if (*s != ' ') infix[i++] = *s;
+	infix[len] = '\0';
 	InfixToSuffix(infix, suffix);
-	//cerr << "suffix: " << suffix << '~' << endl;
-	return SuffixValue(suffix);
+	PreCalculate(suffix, infix);
+	// cerr << "Suffix: " << suffix << endl;
+	// cerr << "Auffix: " << infix << endl;
+
+	len = strlen(infix);
+	char *ret = new char[len + 1];
+	strcpy(ret, infix);
+	ret[len] = '\0';
+	delete[] infix;
+	delete[] suffix;
+	// cerr << "GE: " << ret << endl;
+	return ret;
 }

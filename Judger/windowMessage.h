@@ -11,5 +11,6 @@ void InitWindow();
 void ShowJudger();
 int WndPro(HANDLE runningProgram = NULL);
 int WaitAKey();
+void ThrowError(const char *s, const char *ed, const char *info);
 
 #endif

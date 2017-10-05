@@ -20,6 +20,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <random>
 
 using namespace std;
 #define mmst(a, b) memset(a, b, sizeof(a))
@@ -37,5 +38,8 @@ inline bool IsControlString(string s)
 		|| s == "compare:"
 		|| s == "file:";
 }
+
+LL RandBig();
+LL RandInRange(const LL &l, const LL &r);
 
 // TODO: 在此处引用程序需要的其他头文件

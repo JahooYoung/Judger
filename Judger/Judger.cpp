@@ -35,7 +35,7 @@ void Judge()
 	while (true)
 	{
 		cout << "生成输入中..." << endl;
-		int t = clock();
+		//int t = clock();
 		if (!inGener->GeneratorInput())
 		{
 			ShowJudger();
@@ -43,7 +43,7 @@ void Judge()
 			WaitAKey();
 			continue;
 		}
-		cout << clock() - t << endl;
+		//cout << clock() - t << endl;
 
 		cout << "正确程序 " << force->ProgramName() << " ---> ";
 		if (force->Run())
@@ -134,14 +134,14 @@ bool MakeData()
 		char *sc = new char[s.size() + 5];
 		strcpy(sc, s.c_str());
 		int len = strlen(sc);
-		//cerr << cnt << ':' << s << endl;
+		int runst = inGener->DataCompile(sc, sc + len);
+		//inGener->Printt();
 		while (cnt--)
 		{
 			id++;
 			cout << "正在生成第 " << id << " 组数据" << endl;
 			cout << "    生成输入中..." << endl;
-			inGener->Process(sc, sc + len);
-			if (!inGener->GeneratorInput(id))
+			if (!inGener->GeneratorInput(id, runst))
 			{
 				cout << "    产生输入文件错误，任意键退出" << endl;
 				WaitAKey();

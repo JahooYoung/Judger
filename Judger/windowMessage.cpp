@@ -85,3 +85,14 @@ int WaitAKey()
 		Sleep(100);
 	}
 }
+
+void ThrowError(const char *s, const char *ed, const char *info)
+{
+	cout << "错误：" << info << endl;
+	cout << "      ";
+	for (; s < ed; s++)
+		cout << *s;
+	cout << endl << "按任意键退出" << endl;
+	WaitAKey();
+	exit(0);
+}
