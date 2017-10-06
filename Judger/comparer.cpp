@@ -3,8 +3,12 @@
 #include "windowMessage.h"
 #include <sstream>
 
-Comparer::Comparer(string infoFile, string _userOutput, string _stdOutput)
-	: userOutput(_userOutput), stdOutput(_stdOutput)
+const string customCheckerName = "checker";
+
+Comparer::Comparer(string infoFile, string _inputFile, 
+					string _userOutput, string _stdOutput)
+	: inputFile(_inputFile), userOutput(_userOutput), 
+		stdOutput(_stdOutput), cusChecker(NULL)
 {
 	string s;
 	ifstream fin(infoFile);
@@ -19,7 +23,7 @@ Comparer::Comparer(string infoFile, string _userOutput, string _stdOutput)
 	if (s == "normal") mode = 0;
 	else if (s == "strict") mode = 1;
 	else if (s == "real") mode = 2;
-	//else if (s == "custom") mode = 3;
+	else if (s == "custom") mode = 3;
 	if (mode == 2)
 	{
 		if (!(fin >> eps))
@@ -31,23 +35,55 @@ Comparer::Comparer(string infoFile, string _userOutput, string _stdOutput)
 			exit(0);
 		}
 	}
-	/*if (mode == 3)
+	if (mode == 3)
 	{
-		fin >> file;
-		sprintf(compfile, "%s %s %s", file, outfile, correct);
-	}*/
+		if (!ExistFile(customCheckerName + ".exe"))
+		{
+			cout << "并没有找到" << customCheckerName + ".exe" << " (@.@)" << endl;
+			cout << "（自定义比较器我只认这个名儿）" << endl;
+			cout << "按任意键退出吧" << endl;
+			WaitAKey();
+			exit(0);
+		}
+		cusChecker = new Program(customCheckerName + ".exe", true);
+		cusChecker->SetArgument(inputFile + " " + stdOutput + " " + userOutput + " 1");
+	}
 	fin.close();
+}
+
+bool Comparer::CompareCustom()
+{
+	if (!cusChecker->Run())
+	{
+		cout << "自定义比较器出错" << endl;
+		return false;
+	}
+	stringstream ss;
+	ss << cusChecker->GetLastOutput();
+	int score = 0;
+	if (!(ss >> score))
+	{
+		cout << "自定义比较器没有输出分数" << endl;
+		return false;
+	}
+	string s;
+	getline(ss, s);
+	cout << "比较器信息: ";
+	while (getline(ss, s))
+		if (s != "") cout << s;
+	//cout.flush();
+	cout << endl;
+	return score == 1;
 }
 
 bool Comparer::Compare()
 {
-	//cerr << mode << endl;
 	switch (mode)
 	{
 	case 0: return CompareNormal();
 	case 1: return CompareStrict();
 	case 2: return CompareReal();
-	//case 3: return !RunProcess(compfile, tmp, oo, true);
+	case 3: return CompareCustom();
 	}
 }
 

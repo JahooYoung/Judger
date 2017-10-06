@@ -3,6 +3,7 @@
 #include "program.h"
 #include "windowMessage.h"
 #include "inputGenerator.h"
+#include "comparer.h"
 #include <windows.h>
 #include <conio.h>
 #include <direct.h>
@@ -95,7 +96,8 @@ void AutoMake()
 	fout << "\n//比较方式\ncompare:\nnormal\n\
 //normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
 //strict 严格比较模式，进行逐字符比较\n\
-//real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。" << endl;
+//real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。\n\
+//custom 自定义比较器，名字必须是checker.exe" << endl;
 	fout.close();
 }
 
@@ -151,19 +153,61 @@ int main(int argc, char **argv)\n\
 	fout.close();
 }
 
+void WriteCustomChecker()
+{
+	ofstream fout(customCheckerName + ".cpp");
+	fout << "\
+#include <iostream>\n\
+#include <fstream>\n\
+#include <algorithm>\n\
+#include <cstdio>\n\
+#include <cstdlib>\n\
+#include <cstring>\n\
+#include <ctime>\n\
+#include <cmath>\n\
+#include <vector>\n\
+using namespace std;\n\
+typedef long long LL;\n\
+\n\
+ifstream in, ans, out;\n\
+int max_score;\n\
+\n\
+/**\n\
+ * 写入判定结果并退出程序\n\
+ * @param score 该输出获得的分数\n\
+ * @param msg   附加信息\n\
+ */\n\
+void WriteResult(int score, string msg = \"\")\n\
+{\n\
+    cout << score << endl;\n\
+    if (msg != \"\")\n\
+        cout << msg << endl;\n\
+    exit(0);\n\
+}\n\
+\n\
+int main(int argc, char **argv)\n\
+{\n\
+    if (argc > 4)\n\
+    {\n\
+        in.open(argv[1]); // 输入文件\n\
+        ans.open(argv[2]); // 正确程序的输出\n\
+        out.open(argv[3]); // 你的程序的输出\n\
+        max_score = atoi(argv[4]); // 满分分值\n\
+    }\n\
+\n\
+    // 在下面完成你的代码\n\
+    \n\
+\n\
+    return 0;\n\
+}\n";
+	fout.close();
+}
+
 bool Answer()
 {
 	int key = WaitAKey();
 	while (key != 'y' && key != 'n') key = WaitAKey();
 	return key == 'y';
-}
-
-bool ExistFile(const string &file)
-{
-	ifstream fin(file);
-	if (!fin) return false;
-	fin.close();
-	return true;
 }
 
 void GenerateGuide()
@@ -231,11 +275,12 @@ void GenerateGuide()
 normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
 strict 严格比较模式，进行逐字符比较\n\
 real 实数比较模式，每个实数进行比较，精度在eps内。若选此模式eps会稍后叫你输入\n\
+custom 自定义比较器，名字必须是checker.exe\n\
 请输入上面字符串中的一个，若直接按Enter，则默认为normal" << endl;
 	getline(cin, s);
 	if (s != "")
 	{
-		while (s != "normal" && s != "strict" && s != "real")
+		while (s != "normal" && s != "strict" && s != "real" && s != "custom")
 		{
 			cout << "Judger不认识" << s << "这个比较模式喔" << endl;
 			while (getline(cin, s) && s == "");
@@ -250,10 +295,21 @@ real 实数比较模式，每个实数进行比较，精度在eps内。若选此模式eps会稍后叫你输入\n\
 		cin >> eps;
 		fout << eps << endl;
 	}
+	if (s == "custom" && !ExistFile(customCheckerName + ".exe"))
+	{
+		cout << "未能在你的文件夹中发现" << customCheckerName << ".exe" << endl;
+		cout << "需要给你一个模板吗？ 按Y键则是，N键则否" << endl << endl;
+		if (Answer())
+		{
+			WriteCustomChecker();
+			cout << "已经把你生成好checker.cpp了，请稍后在里面完成自定义比较器吧" << endl << endl;
+		}
+	}
 	fout << "\
 //normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
 //strict 严格比较模式，进行逐字符比较\n\
-//real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。" << endl;
+//real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。\n\
+//custom 自定义比较器，名字必须是checker.exe" << endl;
 	
 	fout.close();
 
@@ -340,6 +396,7 @@ W$(2*10^18)\n\
 normal 代表正常的比较模式，忽略行末空格和文尾回车\n\
 strict 严格比较模式，进行逐字符比较\n\
 real 实数比较模式，每个实数进行比较，精度在eps内。eps请写在real的下一行，例如1e-6。\n\
+custom 自定义比较器，名字必须是checker.exe\n\
 第二行根据第一行的情况填写。\n\n";
 
 	cout << "按任意键退出。弄好" << infoFile << "后再次运行judger即可使用。" << endl;

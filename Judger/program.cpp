@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <Psapi.h>
 
-const int minDelay = 5, maxDelay = 100;
+const SIZE_T minDelay = 5, maxDelay = 100;
 
 //void StringToWString(const string &str, LPWSTR wstr)
 void StringToWString(const string &str, LPSTR &lstr)
@@ -20,8 +20,8 @@ void StringToWString(const string &str, LPSTR &lstr)
 
 Program::Program(string programName, bool _showContent, int _timeLimit)
 	: prog(programName), showContent(_showContent), timeLimit(_timeLimit),
-	totalRunningTime(0), lastRunningTime(0), runCount(0), argc(""),
-	lastRunningMemory(0), maxRunningMemory(0)
+	totalRunningTime(0), lastRunningTime(0), runCount(0), argc(),
+	lastRunningMemory(0), maxRunningMemory(0), lastOutput()
 {
 	StringToWString(prog, cmd);
 }
@@ -33,7 +33,7 @@ void Program::SetArgument(string _argc)
 	else StringToWString(prog, cmd);
 }
 
-int Program::LastRunningTime()
+SIZE_T Program::LastRunningTime()
 {
 	return lastRunningTime;
 }
@@ -59,6 +59,11 @@ string Program::ProgramName()
 	return prog;
 }
 
+string Program::GetLastOutput()
+{
+	return lastOutput;
+}
+
 bool Program::Run()
 {
 	int timer = minDelay;
@@ -67,13 +72,35 @@ bool Program::Run()
 	STARTUPINFO si;
 	memset(&si, 0, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
+
+	HANDLE hPipeWrite = NULL, hPipeRead = NULL;
+	if (showContent)
+	{
+		SECURITY_ATTRIBUTES sa;
+		sa.bInheritHandle = TRUE;
+		sa.lpSecurityDescriptor = NULL;
+		sa.nLength = sizeof(sa);
+
+		if (!CreatePipe(&hPipeRead, &hPipeWrite, &sa, 0))
+		{
+			cerr << "CreatePipe Fail" << endl << "Press any key to exit." << endl;
+			WaitAKey();
+			exit(0);
+		}
+
+		si.dwFlags = STARTF_USESTDHANDLES;
+		si.hStdInput = NULL;
+		si.hStdOutput = hPipeWrite;
+		si.hStdError = NULL;
+	}
+
 	PROCESS_INFORMATION pi;
 	PROCESS_MEMORY_COUNTERS pmc;
 	DWORD exitCode;
 	DWORD runTime = GetTickCount();
-	CreateProcess(NULL, cmd, NULL, NULL, FALSE,
+	CreateProcess(NULL, cmd, NULL, NULL, showContent,
 		//(!show_content) * DETACHED_PROCESS | NORMAL_PRIORITY_CLASS, 
-		(!showContent) * DETACHED_PROCESS | HIGH_PRIORITY_CLASS,
+		DETACHED_PROCESS | HIGH_PRIORITY_CLASS,
 		NULL, NULL, &si, &pi);
 
 	while (true)
@@ -81,8 +108,6 @@ bool Program::Run()
 		GetExitCodeProcess(pi.hProcess, &exitCode);
 		if (exitCode != STILL_ACTIVE) break;
 		//GetProcessMemoryInfo(pi.hProcess, &pmc, sizeof(pmc));
-		//cerr << "cur:" << pmc.WorkingSetSize / 1048576 << endl
-		//	<< "peak:" << pmc.PeakWorkingSetSize / 1048576 << endl;
 		WndPro(pi.hProcess);
 		if (int(GetTickCount() - runTime) > timeLimit)
 		{
@@ -105,6 +130,24 @@ bool Program::Run()
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+
+	if (showContent)
+	{
+		CloseHandle(hPipeWrite);
+		int bufSize = max(pmc.PeakWorkingSetSize >> 4, 100);
+		char *buf = new char[bufSize + 1];
+		buf[bufSize] = '\0';
+		lastOutput = "";
+		while (true)
+		{
+			memset(buf, 0, bufSize);
+			DWORD dwRead;
+			if (!ReadFile(hPipeRead, buf, bufSize, &dwRead, NULL))
+				break;
+			lastOutput += buf;
+		}
+		CloseHandle(hPipeRead);
+	}
 
 	lastRunningMemory = pmc.PeakWorkingSetSize;
 	maxRunningMemory = max(maxRunningMemory, lastRunningMemory);

@@ -16,7 +16,6 @@ void InputGenerator::Printt()
 	cerr << "------------------------------------------" << endl;
 }
 
-
 InputGenerator::InputGenerator(string infoFile, string outputFile) 
 	: expr(), file(NULL), cusGener(NULL)
 {
@@ -27,7 +26,15 @@ InputGenerator::InputGenerator(string infoFile, string outputFile)
 	if (s != "input:")
 	{
 		fin.close();
-		cusGener = new Program(inGenerName + ".exe", false);
+		if (!ExistFile(inGenerName + ".exe"))
+		{
+			cout << "并没有找到" << inGenerName + ".exe" << " (@.@)" << endl;
+			cout << "也没有找到\"input:\"，输入咋办捏" << endl;
+			cout << "按任意键退出吧" << endl;
+			WaitAKey();
+			exit(0);
+		}
+		cusGener = new Program(inGenerName, false);
 		return;
 	}
 	for (ss = ""; getline(fin, s) && !IsControlString(s); )

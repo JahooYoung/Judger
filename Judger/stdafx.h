@@ -41,5 +41,6 @@ inline bool IsControlString(string s)
 
 LL RandBig();
 LL RandInRange(const LL &l, const LL &r);
+bool ExistFile(const string &file);
 
 // TODO: 在此处引用程序需要的其他头文件

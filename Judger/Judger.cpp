@@ -23,7 +23,7 @@ void Init()
 	InitWindow();
 	InitFile(prog, force, inputFile, outputFile);
 	inGener = new InputGenerator(infoFile, inputFile);
-	comp = new Comparer(infoFile, outputFile, stdOutput);
+	comp = new Comparer(infoFile, inputFile, outputFile, stdOutput);
 }
 
 void Judge()

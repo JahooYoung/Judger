@@ -9,16 +9,18 @@ public:
 	Program(string programName, bool showContent, int timeLimit = inf);
 	void SetArgument(string argc);
 	bool Run();
-	int LastRunningTime();
+	SIZE_T LastRunningTime();
 	double AverageRunningTime();
 	double LastRunningMemory();
 	double MaxRunningMemory();
 	string ProgramName();
+	string GetLastOutput();
 private:
 	string prog, argc;
 	LPSTR cmd;
-	int totalRunningTime, runCount, lastRunningTime, timeLimit;
+	SIZE_T totalRunningTime, runCount, lastRunningTime, timeLimit;
 	SIZE_T lastRunningMemory, maxRunningMemory;
 	bool showContent;
+	string lastOutput;
 };
 

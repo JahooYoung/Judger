@@ -16,5 +16,13 @@ LL RandInRange(const LL &l, const LL &r)
 	return l + RandBig() % (r - l + 1);
 }
 
+bool ExistFile(const string &file)
+{
+	ifstream fin(file);
+	if (!fin) return false;
+	fin.close();
+	return true;
+}
+
 // TODO: 在 STDAFX.H 中引用任何所需的附加头文件，
 //而不是在此文件中引用
