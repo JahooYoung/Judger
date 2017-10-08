@@ -31,7 +31,7 @@ inline bool IsValue(const char &a)
 
 LL power(LL a, LL b)
 {
-	if (a == 1 || b == 0) return 1;
+	//if (a == 1 || b == 0) return 1;
 	LL ret = 1;
 	for (; b; b >>= 1)
 	{
@@ -57,7 +57,9 @@ void Expression::SetVarible(LL *_var)
 void Expression::InfixToSuffix(char *infix, char *suffix) 
 {
 	stack<char> op; //存储运算符的栈
-	for (char *infixBegin = infix; *infix; infix++)
+	int curOperands = 0;
+	char *infixBegin = infix;
+	for (; *infix; infix++)
 	{
 		if (IsValue(*infix))
 		{
@@ -75,11 +77,12 @@ void Expression::InfixToSuffix(char *infix, char *suffix)
 		else {
 			//操作数后补充空格分割
 			if (infix != infixBegin && IsValue(*(infix - 1)))
-				*(suffix++) = ' ';
+				*(suffix++) = ' ', curOperands++;
 			if (*infix == '-' && (infix == infixBegin || !IsValue(*(infix - 1))))
 			{
 				*(suffix++) = '0';
 				*(suffix++) = ' ';
+				curOperands++;
 			}
 			if (*infix == ')')
 			{
@@ -97,6 +100,9 @@ void Expression::InfixToSuffix(char *infix, char *suffix)
 				{
 					*(suffix++) = op.top();
 					*(suffix++) = ' ';
+					curOperands -= 2;
+					if (curOperands < 0)
+						ThrowError(infixBegin, infixBegin + strlen(infixBegin), "表达式缺少运算数");
 				}
 				//当前操作符入栈
 				op.push(*infix);
@@ -105,12 +111,15 @@ void Expression::InfixToSuffix(char *infix, char *suffix)
 	}
 	//补充空格分割
 	//cerr << *suffix << endl;
-	if (*(suffix-1) != ' ') *(suffix++) = ' ';
+	if (*(suffix-1) != ' ') *(suffix++) = ' ', curOperands++;
 	//如果操作符栈不为空，弹出所有操作符
 	for (; !op.empty(); op.pop())
 	{
 		*(suffix++) = op.top();
 		*(suffix++) = ' ';
+		curOperands -= 2;
+		if (curOperands < 0)
+			ThrowError(infixBegin, infixBegin + strlen(infixBegin), "表达式缺少运算数");
 	}
 	*suffix = '\0';
 }
@@ -246,7 +255,12 @@ char *Expression::GetExpression(const char *s, const char *ed)
 	if (!ed) ed = s + strlen(s);
 	int len = 0;
 	for (const char *i = s; i != ed; i++)
-		if (*i != ' ') len++;
+	{
+		if (*i == ' ') continue;
+		len++;
+		if (!IsValue(*i) && !opPriority[*i]) 
+			ThrowError(s, ed, string("不能识别的表达式符号'") + *i + "'");
+	}
 	if (len == 0)
 		ThrowError(s, ed, "缺少表达式");
 	char *infix = new char[40 * (len + 5)], *suffix = new char[40 * (len + 5)];

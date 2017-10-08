@@ -12,7 +12,7 @@ LL RandBig()
 
 LL RandInRange(const LL &l, const LL &r)
 {
-	// if (r < l) return r + RandBig() % (l - r + 1);
+	if (r < l) return r + RandBig() % (l - r + 1);
 	return l + RandBig() % (r - l + 1);
 }
 

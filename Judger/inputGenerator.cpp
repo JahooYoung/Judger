@@ -175,6 +175,8 @@ void InputGenerator::Compile(char *s, char *ed, int mode) //1 unprint
 		{
 			bool unprint = (*(s + 1) == '$');
 			char *varibleEnd = FindChar(s + 2 + unprint, ed, ')', '(');
+			if (!varibleEnd)
+				ThrowError(s, ed, "赋值语句找不到结束符')'");
 			char *comma = FindChar(s, varibleEnd, ',');
 			int var = *s;
 			if (!comma)
@@ -195,11 +197,15 @@ void InputGenerator::Compile(char *s, char *ed, int mode) //1 unprint
 		}
 		if (*s != '\\')
 		{
-			if (!mode) inst.push_back(Instruction(5, 0, new char(*s)));
+			if (!mode) 
+				inst.push_back(Instruction(5, 0, new char(*s)));
 		}
 		else {
 			s++;
-			if (!mode) inst.push_back(Instruction(5, 0, new char(*s == 'n' ? '\n' : *s)));
+			if (s == ed) 
+				ThrowError(s-1, ed, "'\\'后缺少字符");
+			if (!mode) 
+				inst.push_back(Instruction(5, 0, new char(*s == 'n' ? '\n' : *s)));
 		}
 		s++;
 	}

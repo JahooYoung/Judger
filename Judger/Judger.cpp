@@ -130,13 +130,15 @@ bool MakeData()
 			exit(0);
 		}
 		int cnt = atoi(s.substr(0, t).c_str());
+		if (cnt >= 0) cnt += id;
+		else cnt = -cnt;
 		s.substr(t + 1);
 		char *sc = new char[s.size() + 5];
 		strcpy(sc, s.c_str());
 		int len = strlen(sc);
 		int runst = inGener->DataCompile(sc, sc + len);
 		//inGener->Printt();
-		while (cnt--)
+		while (id+1 <= cnt)
 		{
 			id++;
 			cout << "正在生成第 " << id << " 组数据" << endl;

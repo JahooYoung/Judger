@@ -86,10 +86,11 @@ int WaitAKey()
 	}
 }
 
-void ThrowError(const char *s, const char *ed, const char *info)
+void ThrowError(const char *s, const char *ed, const string &info)
 {
 	cout << "错误：" << info << endl;
 	cout << "      ";
+	if (ed == NULL) ed = s + strlen(s);
 	for (; s < ed; s++)
 		cout << *s;
 	cout << endl << "按任意键退出" << endl;
