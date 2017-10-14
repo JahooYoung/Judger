@@ -100,8 +100,8 @@ void Expression::InfixToSuffix(char *infix, char *suffix)
 				{
 					*(suffix++) = op.top();
 					*(suffix++) = ' ';
-					curOperands -= 2;
-					if (curOperands < 0)
+					curOperands--;
+					if (curOperands < 1)
 						ThrowError(infixBegin, infixBegin + strlen(infixBegin), "表达式缺少运算数");
 				}
 				//当前操作符入栈
@@ -117,8 +117,8 @@ void Expression::InfixToSuffix(char *infix, char *suffix)
 	{
 		*(suffix++) = op.top();
 		*(suffix++) = ' ';
-		curOperands -= 2;
-		if (curOperands < 0)
+		curOperands--;
+		if (curOperands < 1)
 			ThrowError(infixBegin, infixBegin + strlen(infixBegin), "表达式缺少运算数");
 	}
 	*suffix = '\0';
