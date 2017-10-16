@@ -149,9 +149,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="comparer.h" />
     <ClInclude Include="expression.h" />
     <ClInclude Include="fileInfo.h" />

@@ -80,7 +80,14 @@ void InputGenerator::FlushBuffer()
 char *InputGenerator::FindChar(char *st, const char *ed, const char &tar)
 {
 	for (; st < ed; st++)
+	{
+		if (*st == '\\')
+		{
+			st++;
+			continue;
+		}
 		if (*st == tar) return st;
+	}
 	return NULL;
 }
 
@@ -88,6 +95,11 @@ char *InputGenerator::FindChar(char *s, const char *ed, const char &tar, const c
 {
 	for (int depth = 1; s < ed; s++)
 	{
+		if (*s == '\\')
+		{
+			s++;
+			continue;
+		}
 		if (*s == tar) depth--;
 		if (*s == opp) depth++;
 		if (depth == 0) return s;
@@ -150,8 +162,13 @@ void InputGenerator::Compile(char *s, char *ed, int mode) //1 unprint
 			vector<char*> option;
 			option.clear();
 			option.push_back(s);
-			for (char *ch = s + 1; ch != selectEnd; ch++)
+			for (char *ch = s + 1; ch < selectEnd; ch++)
 			{
+				if (*ch == '\\')
+				{
+					ch++;
+					continue;
+				}
 				if (*ch == '|') option.push_back(ch);
 				if (*ch == '{') ch = FindChar(ch + 1, selectEnd, '}', '{');
 			}
@@ -174,17 +191,21 @@ void InputGenerator::Compile(char *s, char *ed, int mode) //1 unprint
 			&& (*(s + 1) == '(' || *(s + 1) == '$' && *(s + 2) == '('))
 		{
 			bool unprint = (*(s + 1) == '$');
-			char *varibleEnd = FindChar(s + 2 + unprint, ed, ')', '(');
+			char *leftParenthesis = s + 1 + unprint;
+			char *varibleEnd = FindChar(leftParenthesis + 1, ed, ')', '(');
 			if (!varibleEnd)
 				ThrowError(s, ed, "赋值语句找不到结束符')'");
-			char *comma = FindChar(s, varibleEnd, ',');
 			int var = *s;
-			if (!comma)
-				inst.push_back(Instruction(1, var, expr.GetExpression(s + 2 + unprint, varibleEnd)));
-			else {
-				inst.push_back(Instruction(1, var, expr.GetExpression(s + 2 + unprint, comma)));
-				inst.push_back(Instruction(1, 1, expr.GetExpression(comma + 1, varibleEnd)));
-				inst.push_back(Instruction(2, var));
+			if (varibleEnd - leftParenthesis > 1)
+			{
+				char *comma = FindChar(s, varibleEnd, ',');
+				if (!comma)
+					inst.push_back(Instruction(1, var, expr.GetExpression(leftParenthesis + 1, varibleEnd)));
+				else {
+					inst.push_back(Instruction(1, var, expr.GetExpression(leftParenthesis + 1, comma)));
+					inst.push_back(Instruction(1, 1, expr.GetExpression(comma + 1, varibleEnd)));
+					inst.push_back(Instruction(2, var));
+				}
 			}
 			if (!unprint && !mode)
 			{
@@ -217,15 +238,11 @@ void InputGenerator::Execute(int st)
 	while (i->type)
 	{
 		if ((++timer) == 100000) WndPro(), timer = 0;
-		// cerr << i-inst.begin() << ": ";
-		// i->Print();
 		char num[20]; int len = -1;
 		switch (i->type)
 		{
 		case 1:
 			var[i->var] = expr.GetValue(i->expr);
-			/*cerr << "1: " << i->var << ' ' << var[i->var] << endl;
-			WaitAKey();*/
 			break;
 		case 2:
 			var[i->var] = RandInRange(var[i->var], var[1]);
@@ -278,7 +295,6 @@ bool InputGenerator::GeneratorInput(int dataId, int start)
 		timer = 0;
 		if (!(file = fopen(output.c_str(), "w"))) return false;
 		InitBuffer();
-		//cerr << "start: " << start << endl;
 		Execute(start);
 		FlushBuffer();
 		fclose(file);
