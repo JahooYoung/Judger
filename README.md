@@ -16,6 +16,8 @@ A tool for OIer to generate random input and compare the result of two programs 
 
 产生正确的JudgeInfo.txt后，再次运行Judger.exe即可开始对拍。
 
+对拍时可以按`p`键暂停，按`Alt+J`最小/最大化。当处于最小化时拍出错误或发生异常，Judger会自动弹出。
+
 **注意，每次修改JudgeInfo.txt后，请重新运行Judger.exe。**
 
 ***
@@ -136,6 +138,8 @@ D$(1, n)
 ```
 
 ## 利用Judger制作测试数据
+**开启这个模式后，Judger不会再进行对拍，所以你只需确保生成数据的部分和你的程序是正确的。**
+
 如果你想利用Judger制作测试数据，那么请在JudgeInfo.txt里写下`makedata:`。
 
 这一部分可以由任意多行组成，其中每一行的格式是：
