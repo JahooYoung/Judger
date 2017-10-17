@@ -25,7 +25,7 @@ A tool for OIer to generate random input and compare the result of two programs 
 ## Judger的数据生成语言
 这个语言用于快速、便捷地生成随机数据，从而不用专门去写一个生成数据的程序。当然，这套简单的语言并不能产生有特殊要求的数据，这时候还是只能专门写一个生成数据的程序。
 
-首先，这个部分请写在`input\:`下。
+首先，这个部分请写在`input:`下。
 
 ### 直接输出
 这个语言很简单，你输入的大部分字符都是直接输出的。比如你的input部分如下：
