@@ -145,10 +145,13 @@ void InputGenerator::Compile(char *s, char *ed, int mode) //1 unprint
 				if (comma != loopDefEnd)
 					inst.push_back(Instruction(1, loopVar, expr.GetExpression(comma + 1, loopDefEnd)));
 				else inst.push_back(Instruction(1, loopVar, expr.GetExpression("1")));
+				int jmp = inst.size();
+				inst.push_back(Instruction(8, 0, NULL, new int));
 				int itStart = inst.size();
 				Compile(loopDefEnd + 1, loopEnd, mode);
 				inst.push_back(Instruction(3, loopVar));
 				inst.push_back(Instruction(4, loopCnt));
+				*inst[jmp].jumpTable = inst.size();
 				inst.push_back(Instruction(9, loopCnt, NULL, new int(itStart)));
 			}
 			s = loopEnd + 1;
